@@ -11,8 +11,8 @@
       <div class="proj-card-main">
         <img :src="props.icon" alt="icon" />
         <div class="proj-card-info">
-          <div class="proj-card-title">{{ props.title }}</div>
-          <div class="proj-card-desc">{{ props.desc }}</div>
+          <div class="proj-card-title" :title="props.title">{{ props.title }}</div>
+          <div class="proj-card-desc" :title="props.desc">{{ props.desc }}</div>
         </div>
       </div>
       <div class="proj-card-badges">
@@ -36,10 +36,9 @@ interface ProjCardDevProps {
 
 const props = defineProps<ProjCardDevProps>();
 
-function isDarkTheme(): boolean {
+function isDarkTheme(): boolean | null {
   const theme = useLocalStorage<"auto" | "dark" | "light">("vuepress-theme-hope-scheme", "auto");
-  // window is not defined in SSR
-  if(theme.value === "auto" && typeof window === "undefined") return false;
+  if (theme.value === "auto" && typeof window === "undefined") return null;
   return theme.value === "auto"
     ? window.matchMedia("(prefers-color-scheme: dark)").matches
     : theme.value === "dark";
@@ -47,11 +46,13 @@ function isDarkTheme(): boolean {
 
 const contentBg = computed(() => {
   const theme = isDarkTheme();
+  if (theme === null) return "transparent";
   return theme ? "#333333" : "#ffffff";
 });
 const shadowColor = computed(() => {
   const theme = isDarkTheme();
-  return theme ? "#114514" : "#d9d9d9";
+  if (theme === null) return "rgba(0,0,0,0.48)";
+  return theme ? "rgba(255,223,0,0.48)" : "#d9d9d9";
 });
 
 function toRepo() {
@@ -69,7 +70,7 @@ function toSite() {
   height: 100%;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 0 5px v-bind(shadowColor);
+  box-shadow: 0 0 8px v-bind(shadowColor);
   display: flex;
   flex-direction: column;
   background: v-bind(contentBg);
@@ -85,6 +86,13 @@ function toSite() {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.3s linear;
+  }
+
+  img:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+    transition: transform 0.3s linear;
   }
 }
 
